@@ -1,0 +1,9 @@
+{
+  "name"        : "github-project-tracker",
+  "version"     : "*",
+  "description" : "Return Github project-centric Issues and generate project summaries",
+  "depends"     : {
+    "HTTP::UserAgent"
+  },
+  "source-url"  : "git://github.com/cnstechnicalgroup/github-project-tracker.git"
+}
