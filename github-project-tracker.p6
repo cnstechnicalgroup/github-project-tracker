@@ -1,6 +1,14 @@
 #!/usr/bin/env perl6
 use v6;
 
+=begin pod
+
+=head1 NAME
+
+github-project-tracker.p6 authenticate
+
+=end pod
+
 use HTTP::Request;
 use HTTP::UserAgent;
 use Config::Simple;
@@ -24,7 +32,9 @@ class GithubProjectTracker {
         my $auth_uri = "$!github_api_uri/authorizations";
 
         my $auth_login = prompt("Please enter your GitHub username? ");
+        shell("stty -echo");
         my $auth_password = prompt("Please enter your GitHub password? ");
+        shell("stty echo");
 
         #my %data = (scopes => "read:org", client_id => "$client_id", client_secret => "$client_secret", note => "$app_name");
         my $request = HTTP::Request.new(POST => URI.new($auth_uri));
