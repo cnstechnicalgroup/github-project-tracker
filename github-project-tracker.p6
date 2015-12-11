@@ -32,8 +32,11 @@ class GithubProjectTracker {
         my $auth_uri = "$!github_api_uri/authorizations";
 
         my $auth_login = prompt("Please enter your GitHub username? ");
+        # this is super hacky... it works for *nix, but we need a better solution
+        # noecho user input when entering password
         shell("stty -echo");
         my $auth_password = prompt("Please enter your GitHub password? ");
+        # return to echo
         shell("stty echo");
 
         #my %data = (scopes => "read:org", client_id => "$client_id", client_secret => "$client_secret", note => "$app_name");
