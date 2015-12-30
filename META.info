@@ -2,6 +2,8 @@
   "name"        : "github-project-tracker",
   "version"     : "*",
   "description" : "Return Github project-centric Issues and generate project summaries",
+  "author"      : "github:scmorrison",
+  "provides"    : [],
   "depends"     : [ "Config::Simple", "GitHub::OAuth" ],
   "source-url"  : "git://github.com/cnstechnicalgroup/github-project-tracker.git",
   "authors" : [
