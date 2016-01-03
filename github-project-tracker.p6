@@ -9,8 +9,7 @@ github-project-tracker.p6 authenticate
 
 =end pod
 
-# use Config::Simple;
-use Config::Clever;
+use JSON::Pretty;
 use GitHub;
 
 class GithubProjectTracker {
@@ -37,25 +36,27 @@ class GithubProjectTracker {
           :note<test-github-oauth-client>
         });
 
-        #my $conf = Config::Simple.new(JSON);
-        #$conf.filename = $!conf_file;
-        #$conf<token> = $ghres<token>;
-        #$conf<hashed_token> = $ghres<hashed_token>;
-        #$conf<token_last_eight> = $ghres<token_last_eight>;
-        #$conf<created_at> = $ghres<created_at>;
-        #$conf<updated_at> = $ghres<updated_at>;
-        #$conf<scopes> = $ghres<scopes>;
-        #$conf.write();
+				# Prepare new config file
+        my %conf = [
+						token => $ghres<token>,
+						hashed_token => $ghres<hashed_token>,
+						token_last_eight => $ghres<token_last_eight>,
+						created_at => $ghres<created_at>,
+						updated_at => $ghres<updated_at>,
+						scopes => $ghres<scopes>
+				];
 
-        my %config = Config::Clever.load(:config-dir($!conf_dir);
-  
-        return $conf<token>;
+        my $fh = open $!conf_file, :w;
+        $fh.print(to-json(%conf));
+        $fh.print("\n");
+        $fh.close();
+        return %conf<token>;
     }
 
     method get-token {
       if $!conf_file.IO ~~ :e {
-        my $conf = Config::Simple.read($!conf_file, :f<JSON>);
-        return $conf<token> ?? $conf<token> !! self.authenticate;
+        my %conf = from-json(slurp($!conf_file));
+        return %conf<token> ?? %conf<token> !! self.authenticate;
       } else {
         return self.authenticate;
       }
