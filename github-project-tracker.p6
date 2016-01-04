@@ -41,6 +41,7 @@ class GithubProjectTracker {
         my %conf = [
 						username => $auth_login,
 						token => $ghres<token>,
+						fingerprint => $ghres<fingerprint>,
 						hashed_token => $ghres<hashed_token>,
 						token_last_eight => $ghres<token_last_eight>,
 						created_at => $ghres<created_at>,
@@ -67,22 +68,23 @@ class GithubProjectTracker {
     method reset-token {
 
   	    my %conf = from-json(slurp($!conf_file));
-				%conf<token> !~~ "" or return;
+				%conf<fingerprint> !~~ "" or return;
 
 	      my $gh = GitHub.new(
-    	      auth_login => $!client_id,
-  	        auth_password => %conf<token>
+  	        fingerprint => %conf<fingerprint>
 	      );
 
         my $ghres = $gh.reset_authorization(data => {
           :scopes(['user', 'repo', 'gist']),
-          :note<test-github-oauth-client>
+          :note<test-github-oauth-client>,
+          :fingerprint(%conf<fingerprint>)
         });
 
   			# Prepare new config file
 	      my %newconf = [
 					username => %conf<username>,
 					token => $ghres<token>,
+					fingerprint => $ghres<fingerprint>,
 					hashed_token => $ghres<hashed_token>,
 					token_last_eight => $ghres<token_last_eight>,
 					created_at => $ghres<created_at>,
@@ -97,14 +99,54 @@ class GithubProjectTracker {
         return %conf<token>;
     }
 
+    method list-authorizations {
+
+  	    my %conf = from-json(slurp($!conf_file));
+				%conf<fingerprint> !~~ "" or return;
+
+	      my $gh = GitHub.new(
+  	        fingerprint => %conf<token>
+	      );
+
+        my $ghres = $gh.list_authorizations(data => {
+          :fingerprint(%conf<fingerprint>)
+        });
+
+        return $ghres;
+    }
+
+    method list-issues (Str $repo) {
+
+  	    my %conf = from-json(slurp($!conf_file));
+				%conf<token> !~~ "" or return;
+
+	      my $gh = GitHub.new(
+  	        fingerprint => %conf<token>
+	      );
+
+        my $ghres = $gh.list_issues(
+					repo => $repo,
+					data => {
+          	:fingerprint(%conf<fingerprint>)
+	      	}
+				);
+
+        return $ghres;
+    }
 }
 
-sub MAIN($action, Bool $debug = False) {
+sub MAIN($action, $repo, Bool $debug = False) {
   if $action ~~ 'authenticate' {
 	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   	say $gh_tracker.get-token();
   } elsif $action ~~ 'reset-token' {
 	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   	say $gh_tracker.reset-token();
+  } elsif $action ~~ 'list-authorizations' {
+	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
+  	say $gh_tracker.list-authorizations();
+  } elsif $action ~~ 'list-issues' {
+	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
+  	say $gh_tracker.list-issues($repo);
 	}
 }
