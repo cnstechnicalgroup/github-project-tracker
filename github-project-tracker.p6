@@ -15,6 +15,7 @@ use GitHub;
 class GithubProjectTracker {
     
     has $!conf_file = "%*ENV<HOME>/.ghpt";
+		has $!client_id = 'test-github-oauth-client';
 
     method authenticate {
 
@@ -38,6 +39,7 @@ class GithubProjectTracker {
 
 				# Prepare new config file
         my %conf = [
+						username => $auth_login,
 						token => $ghres<token>,
 						hashed_token => $ghres<hashed_token>,
 						token_last_eight => $ghres<token_last_eight>,
@@ -61,9 +63,48 @@ class GithubProjectTracker {
         return self.authenticate;
       }
     }
+
+    method reset-token {
+
+  	    my %conf = from-json(slurp($!conf_file));
+				%conf<token> !~~ "" or return;
+
+	      my $gh = GitHub.new(
+    	      auth_login => $!client_id,
+  	        auth_password => %conf<token>
+	      );
+
+        my $ghres = $gh.reset_authorization(data => {
+          :scopes(['user', 'repo', 'gist']),
+          :note<test-github-oauth-client>
+        });
+
+  			# Prepare new config file
+	      my %newconf = [
+					username => %conf<username>,
+					token => $ghres<token>,
+					hashed_token => $ghres<hashed_token>,
+					token_last_eight => $ghres<token_last_eight>,
+					created_at => $ghres<created_at>,
+					updated_at => $ghres<updated_at>,
+					scopes => $ghres<scopes>
+	  		];
+
+        my $fh = open $!conf_file, :w;
+        $fh.print(to-json(%newconf));
+        $fh.print("\n");
+        $fh.close();
+        return %conf<token>;
+    }
+
 }
 
 sub MAIN($action, Bool $debug = False) {
-  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
-  say $gh_tracker.get-token();
+  if $action ~~ 'authenticate' {
+	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
+  	say $gh_tracker.get-token();
+  } elsif $action ~~ 'reset-token' {
+	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
+  	say $gh_tracker.reset-token();
+	}
 }
