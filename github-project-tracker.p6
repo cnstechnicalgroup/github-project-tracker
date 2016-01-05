@@ -131,22 +131,19 @@ class GithubProjectTracker {
 	      	}
 				);
 
-        return $ghres;
+				return $ghres;
     }
 }
 
 sub MAIN($action, $repo, Bool $debug = False) {
+	my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   if $action ~~ 'authenticate' {
-	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   	say $gh_tracker.get-token();
   } elsif $action ~~ 'reset-token' {
-	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   	say $gh_tracker.reset-token();
   } elsif $action ~~ 'list-authorizations' {
-	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   	say $gh_tracker.list-authorizations();
   } elsif $action ~~ 'list-issues' {
-	  my $gh_tracker = GithubProjectTracker.new(action => $action, debug => False);
   	say $gh_tracker.list-issues($repo);
 	}
 }
